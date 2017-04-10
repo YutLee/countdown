@@ -1,0 +1,160 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<div>距离活动开始时间还有：<span id="wait"></span></div>
+<div>距离活动结束时间还有：<span id="active"></span></div>
+<div>距离下次活动开始时间还有：<span id="next"></span></div>
+<script type="text/javascript">
+	var waitDom = document.getElementById('wait');
+	var activeDom = document.getElementById('active');
+	var nextDom = document.getElementById('next');
+	var now = new Date();
+
+	function getNextDay(now) {
+		var current = new Date(now),
+			currentDay = current.getDay(),
+			day = current.getDate() + (currentDay == 6 ? 6 : 5 - currentDay);
+		return [current, day];
+	}
+
+	function getStartTime(now) {
+		var date = getNextDay(now),
+			current = date[0];
+		current.setDate(date[1]);
+		current.setHours(0,0,0,0);
+		return new Date(current);
+	}
+
+	function getEndTime(now) {
+		var date = getNextDay(now),
+			current = date[0];
+		current.setDate(date[1]);
+		current.setHours(23,59,59,999);
+		return new Date(current);
+	}
+
+	function getNextStartTime(now) {
+		var date = getNextDay(now),
+			current = date[0];
+		current.setDate(date[1] + 7);
+		current.setHours(0,0,0,0);
+		return new Date(current);
+	}
+
+	function zeroFill(input) {
+		return input > 9 ? input.toString() : '0' + input;
+	}
+
+	function getOverDays(over) {
+		var days = Math.floor(over / (24 * 60 * 60 * 1000));
+		return days + '天';//.toString();
+	}
+
+	function getOverHours(over) {
+		var hours = Math.floor(over % (24 * 60 * 60 * 1000) / (60 * 60 * 1000));
+		return hours + '时';//.toString();//zeroFill(hours);
+	}
+
+	function getOverMinutes(over) {
+		var minutes = Math.floor(over % (24 * 60 * 60 * 1000) % (60 * 60 * 1000) / (60 * 1000));
+		return zeroFill(minutes) + '分';
+	}
+
+	function getOverSeconds(over) {
+		var seconds = Math.floor(over % (24 * 60 * 60 * 1000) % (60 * 60 * 1000) % (60 * 1000) / 1000);
+		return zeroFill(seconds) + '秒';
+	}
+
+	// console.log(now.getTime());
+	// console.log(getStartTime(now), getStartTime(now) - now.getTime());
+	// console.log(getEndTime(now), getEndTime(now) - now.getTime());
+	// console.log(getNextStartTime(now), getNextStartTime(now) - now.getTime());
+
+	// (function countdown(now) {
+	// 	var nowTime = now.getTime(),
+	// 		firstActiveTime = getStartTime(now) - nowTime,
+	// 		secondActiveTime = getEndTime(now) - nowTime,
+	// 		thirdActiveTime = getNextStartTime(now) - nowTime,
+	// 		wait = getOverDays(firstActiveTime) + getOverHours(firstActiveTime) + getOverMinutes(firstActiveTime) + getOverSeconds(firstActiveTime),
+	// 		active = getOverDays(secondActiveTime) + getOverHours(secondActiveTime) + getOverMinutes(secondActiveTime) + getOverSeconds(secondActiveTime),
+	// 		next = getOverDays(thirdActiveTime) + getOverHours(thirdActiveTime) + getOverMinutes(thirdActiveTime) + getOverSeconds(thirdActiveTime);
+
+	// 	waitDom.innerText = wait;
+	// 	activeDom.innerText = active;
+	// 	nextDom.innerText = next;
+
+	// 	setTimeout(function() {
+	// 		waitDom.innerText = wait;
+	// 		activeDom.innerText = active;
+	// 		nextDom.innerText = next;
+	// 		countdown(new Date(now.getTime() + 1000));
+	// 	}, 1000);
+	// })(now);
+
+	function isFunction(fn) {
+		return Object.prototype.toString.call(o) === '[object Function]';
+	}
+
+	function countdownWait(now, fn) {
+		var nowTime = now.getTime(),
+			firstActiveTime = getStartTime(now) - nowTime,
+			wait = getOverDays(firstActiveTime) + getOverHours(firstActiveTime) + getOverMinutes(firstActiveTime) + getOverSeconds(firstActiveTime);
+
+		if(firstActiveTime <= 0) {
+			isFunction(fn) && fn();
+			return;
+		}
+
+		waitDom.innerText = wait;
+
+		setTimeout(function() {
+			countdownWait(new Date(now.getTime() + 1000));
+		}, 1000);
+	}
+
+	function countdownActive(now, fn) {
+		var nowTime = now.getTime(),
+			secondActiveTime = getEndTime(now) - nowTime,
+			active = getOverDays(secondActiveTime) + getOverHours(secondActiveTime) + getOverMinutes(secondActiveTime) + getOverSeconds(secondActiveTime);
+
+		if(secondActiveTime <= 0) {
+			isFunction(fn) && fn();
+			return;
+		}
+
+		activeDom.innerText = active;
+
+		setTimeout(function() {
+			countdownActive(new Date(now.getTime() + 1000));
+		}, 1000);
+	}
+
+	function countdownNext(now, fn) {
+		var nowTime = now.getTime(),
+			thirdActiveTime = getNextStartTime(now) - nowTime,
+			next = getOverDays(thirdActiveTime) + getOverHours(thirdActiveTime) + getOverMinutes(thirdActiveTime) + getOverSeconds(thirdActiveTime);
+
+		if(thirdActiveTime <= 0) {
+			isFunction(fn) && fn();
+			return;
+		}
+
+		nextDom.innerText = next;
+
+		setTimeout(function() {
+			countdownNext(new Date(now.getTime() + 1000));
+		}, 1000);
+	}
+
+	countdownWait(now, function() {
+		countdownActive(now);
+	});
+
+	countdownNext(now);
+
+</script>
+</body>
+</html>
